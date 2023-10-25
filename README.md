@@ -5,7 +5,7 @@ Projekt będzie wykonany w języku Kotlin (więcej informacji wkrótce).
 
 Metodyka projektowania - Kanban
 
-Zarządzanie zadaniami - Github issues 
+Zarządzanie zadaniami - Github issues
 
 Harmonogramowanie - Github projects
 
