@@ -1,7 +1,7 @@
 # RetroPc
 Komputer retro oparty na procesorze 6502.
 
-Projekt będzie wykonany w języku Kotlin.
+Projekt będzie wykonany w języku Kotlin (więcej informacji wkrótce).
 
 Metodyka projektowania - Kanban
 
