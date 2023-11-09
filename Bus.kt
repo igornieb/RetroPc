@@ -21,7 +21,7 @@ class Bus constructor(private var ram : ByteArray = ByteArray(256*256), private 
         return 0x00;
     }
 
-    public fun Write(address:Short, data : Byte){
+    public fun Write(address: Int, data: Int){
         // currently ram is only thing on the bus so writing is done to its range - 0-256^2
         if (address in 0x0000..0xffff)
         {
