@@ -29,14 +29,14 @@ class Cpu6502(
     // Y	Y register	(8 bit)
     // SR	status register	(8 bit)
     // SP	stack pointer	(8 bit)
-    private var pc : Short = 0x0000,
+    private var pc : Int = 0x0000,
     private var a : Byte = 0x00,
     private var x : Byte = 0x00,
     private var y : Byte = 0x00,
     private var sr : Byte = 0x00,
     private var sp : Byte = 0x00,
-    private var addressAbs : Short = 0x0000,
-    private var addressRel : Short = 0x0000,
+    private var addressAbs : Int = 0x0000,
+    private var addressRel : Int = 0x0000,
     // current fetched data (used for instructions)
     private var fetched : Byte= 0x00,
 
@@ -60,10 +60,10 @@ class Cpu6502(
 
         }
 
-        cycles-=1;
+        cycles-=1
     }
 
-    public fun Reset(){
+    fun Reset(){
         // TODO
     }
 
@@ -80,10 +80,10 @@ class Cpu6502(
     private fun SetFlag(f : Flags, v: Boolean)
     {
         if (v){
-            sr = sr or f.value.toByte();
+            sr = sr or f.value.toByte()
         }
         else{
-            sr = sr and f.value.toByte().inv();
+            sr = sr and f.value.toByte().inv()
         }
     }
     
@@ -108,32 +108,102 @@ class Cpu6502(
 
     fun ABS(): Byte {
         var lo = Read(pc)
-        pc = (pc + 1).toShort()
+        pc += 1
         var hi = Read(pc)
-        pc = (pc + 1).toShort()
-        addressAbs = ((hi.toInt() shl 8) or lo.toInt()).toShort()
+        pc +=1
+        addressAbs = ((hi shl 8) or lo)
         return 0
     }
 
     fun ABX(): Byte {
         val lo = Read(pc)
-        pc = (pc + 1).toShort()
+        pc += 1
         val hi = Read(pc)
-        pc = (pc + 1).toShort()
-        addressAbs = (hi.toInt() shl 8 or lo.toInt()).toShort()
-        addressAbs = (addressAbs + x).toShort()
-        return if (addressAbs.toInt() and 0xFF00 != hi.toInt() shl 8) 1 else 0
+        pc += 1
+        addressAbs = (hi shl 8 or lo)
+        addressAbs += x
+        return if (addressAbs and 0xFF00 != hi shl 8) 1 else 0
     }
 
     fun ABY(): Byte {
         val lo = Read(pc)
-        pc = (pc + 1).toShort()
+        pc += 1
         val hi = Read(pc)
-        pc = (pc + 1).toShort()
-        addressAbs = (hi.toInt() shl 8 or lo.toInt()).toShort()
-        addressAbs = (y + addressAbs).toShort()
-        return if (addressAbs.toInt() and 0xFF00 != hi.toInt() shl 8) 1 else 0
+        pc += 1
+        addressAbs = (hi shl 8 or lo)
+        addressAbs += y
+        return if (addressAbs and 0xFF00 != hi shl 8) 1 else 0
     }
+    fun IND() : Byte {
+        val lo = Read(pc)
+        pc += 1
+        val hi = Read(pc)
+        pc += 1
+        val tmpPtr = (hi shl 8 or lo)
+        //implement hardware bug
+        if (lo == 0x00FF) {
+            addressAbs = (Read((tmpPtr and 0xFF00)) or Read(tmpPtr))
+        } else {
+            addressAbs = ((Read((tmpPtr + 1)) shl 8) or Read(tmpPtr))
+        }
+        return 0
+    }
+
+    fun IZX(): Byte {
+        val tmp = Read(pc)
+        pc += 1
+        val lo = Read((tmp + x and 0x00FF))
+        val hi = Read((tmp + x + 1 and 0x00FF))
+        addressAbs = (hi shl 8 or lo)
+        return 0
+    }
+
+    fun IZY(): Byte {
+        val tmp = Read(pc)
+        pc += 1
+        val lo = Read((tmp + x and 0x00FF))
+        val hi = Read((tmp + x + 1 and 0x00FF))
+        addressAbs = (hi shl 8 or lo)
+        addressAbs += y
+        return if (addressAbs and 0xFF00 !== hi shl 8) {
+            1
+        } else {
+            0
+        }
+    }
+
+    fun ZPG(): Byte {
+        addressAbs = Read(pc)
+        pc += 1
+        addressAbs = addressAbs and 0x00FF
+        return 0
+    }
+
+    fun ZPX(): Byte {
+        addressAbs = Read((pc + x))
+        pc += 1
+        addressAbs = (addressAbs and 0x00FF)
+        return 0
+    }
+
+    fun ZPY(): Byte {
+        addressAbs = Read((pc + y))
+        pc += 1
+        addressAbs = (addressAbs and 0x00FF)
+        return 0
+    }
+
+    fun REL(): Byte {
+        addressRel = Read(pc)
+        pc += 1
+        if (addressRel and 0x80 == addressRel)
+        {
+            addressRel = addressRel or 0xFF00
+        }
+        return 0
+    }
+
+
 
 
     // connecting to bus, interacting  with it
@@ -142,9 +212,9 @@ class Cpu6502(
         this.bus = bus
     }
 
-    public fun Read(address : Short) : Byte
+    public fun Read(address : Int) : Int
     {
-        return bus.Read(address)
+        return bus.Read(address.toShort()).toInt()
     }
 
     public fun Write(address : Short, data : Byte)
