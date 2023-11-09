@@ -34,17 +34,30 @@ class Cpu6502(
     private var addressRel : Int = 0x0000,
     // current fetched data (used for instructions)
     private var fetched : Int = 0x00,
-
-    // current operation code
     // https://www.youtube.com/watch?v=TGcjn8zMhfM
-    private var opCode: Int = 0x00,
+    private var opCode: Int = 0x00, // current operation code
     // cycles left for current instruction
     private var cycles : Int = 0x00,
     ){
     init {
         lookup = listOf(
-            Instruction(this::BRK, this::BRK, 0x00)
-        )
+            Instruction(this::BRK, this::IMM, 7), Instruction(this::ORA, this::IZX, 6), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::NOP, this::IMP, 3), Instruction(this::ORA,this::ZPG, 3), Instruction(this::ASL, this::ZPG, 5), Instruction(this::XXX, this::IMP, 5), Instruction(this::PHP, this::IMP, 3), Instruction(this::ORA, this::IMM, 2), Instruction(this::ASL, this::IMP, 2), Instruction(this::XXX, this::IMP, 2), Instruction(this::NOP, this::IMP, 4), Instruction(this::ORA, this::ABS, 4), Instruction(this::ASL, this::ABS, 6), Instruction(this::XXX, this::IMP, 6),
+            Instruction(this::BPL, this::IMM, 2), Instruction(this::ORA, this::IZY, 5), Instruction(this::XXX, this::IMP, 2),  Instruction(this::XXX, this::IMP, 8), Instruction(this::NOP, this::IMP, 4), Instruction(this::ORA,this::ZPX, 4), Instruction(this::ASL, this::ZPX, 6), Instruction(this::XXX, this::IMP, 6), Instruction(this::CLC, this::IMP, 2), Instruction(this::ORA, this::ABY, 4), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 7), Instruction(this::NOP, this::IMP, 4), Instruction(this::ORA, this::ABX, 4), Instruction(this::ASL, this::ABX, 7), Instruction(this::XXX, this::IMP, 7),
+            Instruction(this::JSR, this::ABS, 6), Instruction(this::AND, this::IZX, 6), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::BIT, this::ZPG, 3), Instruction(this::AND,this::ZPG, 3), Instruction(this::ROL, this::ZPG, 5), Instruction(this::XXX, this::IMP, 5), Instruction(this::PLP, this::IMP, 4), Instruction(this::AND, this::IMM, 2), Instruction(this::ROL, this::IMP, 2), Instruction(this::XXX, this::IMP, 2), Instruction(this::BIT, this::ABS, 4), Instruction(this::AND, this::ABS, 4), Instruction(this::ROL, this::ABS, 6), Instruction(this::XXX, this::IMP, 6),
+            Instruction(this::BMI, this::REL, 2), Instruction(this::AND, this::IZY, 5), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::NOP, this::IMP, 4), Instruction(this::AND,this::ZPX, 4), Instruction(this::ROL, this::ZPX, 6), Instruction(this::XXX, this::IMP, 6), Instruction(this::SEC, this::IMP, 2), Instruction(this::AND, this::ABY, 4), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 7), Instruction(this::NOP, this::IMP, 4), Instruction(this::AND, this::ABX, 4), Instruction(this::ROL, this::ABX, 7), Instruction(this::XXX, this::IMP, 7),
+            Instruction(this::RTI, this::IMP, 6), Instruction(this::EOR, this::IZX, 6), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::NOP, this::IMP, 3), Instruction(this::EOR, this::ZPG, 3), Instruction(this::LSR, this::ZPG, 5), Instruction(this::XXX, this::IMP, 5), Instruction(this::PHA, this::IMP, 3), Instruction(this::EOR, this::IMM, 2), Instruction(this::LSR, this::IMP, 2), Instruction(this::XXX, this::IMP, 2), Instruction(this::JMP, this::ABS, 3), Instruction(this::EOR, this::ABS, 4), Instruction(this::LSR, this::ABS, 6), Instruction(this::XXX, this::IMP, 6),
+            Instruction(this::BVC, this::REL, 2), Instruction(this::EOR, this::IZY, 5), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::NOP, this::IMP, 4), Instruction(this::EOR, this::ZPX, 4), Instruction(this::LSR, this::ZPX, 6), Instruction(this::XXX, this::IMP, 6), Instruction(this::CLI, this::IMP, 2), Instruction(this::EOR, this::ABY, 4), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 7), Instruction(this::NOP, this::IMP, 4), Instruction(this::EOR, this::ABX, 4), Instruction(this::LSR, this::ABX, 7), Instruction(this::XXX, this::IMP, 7),
+            Instruction(this::RTS, this::IMP, 6), Instruction(this::ADC, this::IZX, 6), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::NOP, this::IMP, 3), Instruction(this::ADC, this::ZPG, 3), Instruction(this::ROR, this::ZPG, 5), Instruction(this::XXX, this::IMP, 5), Instruction(this::PLA, this::IMP, 4), Instruction(this::ADC, this::IMM, 2), Instruction(this::ROR, this::IMP, 2), Instruction(this::XXX, this::IMP, 2), Instruction(this::JMP, this::IND, 5), Instruction(this::ADC, this::ABS, 4), Instruction(this::ROR, this::ABS, 6), Instruction(this::XXX, this::IMP, 6),
+            Instruction(this::BVS, this::REL, 2), Instruction(this::ADC, this::IZY, 5), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::NOP, this::IMP, 4), Instruction(this::ADC, this::ZPX, 4), Instruction(this::ROR, this::ZPX, 6), Instruction(this::XXX, this::IMP, 6), Instruction(this::SEI, this::IMP, 2), Instruction(this::ADC, this::ABY, 4), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 7), Instruction(this::NOP, this::IMP, 4), Instruction(this::ADC, this::ABX, 4), Instruction(this::ROR, this::ABX, 7), Instruction(this::XXX, this::IMP, 7),
+            Instruction(this::NOP, this::IMP, 2), Instruction(this::STA, this::IZX, 6), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 6), Instruction(this::STY, this::ZPG, 3), Instruction(this::STA, this::ZPG, 3), Instruction(this::STX, this::ZPG, 3), Instruction(this::XXX, this::IMP, 3), Instruction(this::DEY, this::IMP, 2), Instruction(this::NOP, this::IMP, 2), Instruction(this::TXA, this::IMP, 2), Instruction(this::XXX, this::IMP, 2), Instruction(this::STY, this::ABS, 4), Instruction(this::STA, this::ABS, 4), Instruction(this::STX, this::ABS, 4), Instruction(this::XXX, this::IMP, 4),
+            Instruction(this::BCC, this::REL, 2), Instruction(this::STA, this::IZY, 6), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 6), Instruction(this::STY, this::ZPX, 4), Instruction(this::STA, this::ZPX, 4), Instruction(this::STX, this::ZPY, 4), Instruction(this::XXX, this::IMP, 4), Instruction(this::TYA, this::IMP, 2), Instruction(this::STA, this::ABY, 5), Instruction(this::TXS, this::IMP, 2), Instruction(this::XXX, this::IMP, 5), Instruction(this::NOP, this::IMP, 5), Instruction(this::STA, this::ABX, 5), Instruction(this::XXX, this::IMP, 5), Instruction(this::XXX, this::IMP, 5),
+            Instruction(this::LDY, this::IMM, 2), Instruction(this::LDA, this::IZX, 6), Instruction(this::LDX, this::IMM, 2), Instruction(this::XXX, this::IMP, 6), Instruction(this::LDY, this::ZPG, 3), Instruction(this::LDA, this::ZPG, 3), Instruction(this::LDX, this::ZPG, 3), Instruction(this::XXX, this::IMP, 3), Instruction(this::TAY, this::IMP, 2), Instruction(this::LDA, this::IMM, 2), Instruction(this::TAX, this::IMP, 2), Instruction(this::XXX, this::IMP, 2), Instruction(this::LDY, this::ABS, 4), Instruction(this::LDA, this::ABS, 4), Instruction(this::LDX, this::ABS, 4), Instruction(this::XXX, this::IMP, 4),
+            Instruction(this::BCS, this::REL, 2), Instruction(this::LDA, this::IZY, 5), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 5), Instruction(this::LDY, this::ZPX, 4), Instruction(this::LDA, this::ZPX, 4), Instruction(this::LDX, this::ZPY, 4), Instruction(this::XXX, this::IMP, 4), Instruction(this::CLV, this::IMP, 2), Instruction(this::LDA, this::ABY, 4), Instruction(this::TSX, this::IMP, 2), Instruction(this::XXX, this::IMP, 4), Instruction(this::LDY, this::ABX, 4), Instruction(this::LDA, this::ABX, 4), Instruction(this::LDX, this::ABY, 4), Instruction(this::XXX, this::IMP, 4),
+            Instruction(this::CPY, this::IMM, 2), Instruction(this::CMP, this::IZX, 6), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::CPY, this::ZPG, 3), Instruction(this::CMP, this::ZPG, 3), Instruction(this::DEC, this::ZPG, 5), Instruction(this::XXX, this::IMP, 5), Instruction(this::INY, this::IMP, 2), Instruction(this::CMP, this::IMM, 2), Instruction(this::DEX, this::IMP, 2), Instruction(this::XXX, this::IMP, 2), Instruction(this::CPY, this::ABS, 4), Instruction(this::CMP, this::ABS, 4), Instruction(this::DEC, this::ABS, 6), Instruction(this::XXX, this::IMP, 6),
+            Instruction(this::BNE, this::REL, 2), Instruction(this::CMP, this::IZY, 5), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::NOP, this::IMP, 4), Instruction(this::CMP, this::ZPX, 4), Instruction(this::DEC, this::ZPX, 6), Instruction(this::XXX, this::IMP, 6), Instruction(this::CLD, this::IMP, 2), Instruction(this::CMP, this::ABY, 4), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 7), Instruction(this::CPX, this::ABS, 4), Instruction(this::CMP, this::ABX, 4), Instruction(this::DEC, this::ABX, 7), Instruction(this::XXX, this::IMP, 7),
+            Instruction(this::CPX, this::IMM, 2), Instruction(this::SBC, this::IZX, 6), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::CPX, this::ZPG, 3), Instruction(this::SBC, this::ZPG, 3), Instruction(this::INC, this::ZPG, 5), Instruction(this::XXX, this::IMP, 5), Instruction(this::INX, this::IMP, 2), Instruction(this::SBC, this::IMM, 2), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 2), Instruction(this::CPX, this::ABS, 4), Instruction(this::SBC, this::ABS, 4), Instruction(this::INC, this::ABS, 6), Instruction(this::XXX, this::IMP, 6),
+            Instruction(this::BEQ, this::REL, 2), Instruction(this::SBC, this::IZY, 5), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::NOP, this::IMP, 4), Instruction(this::SBC, this::ZPX, 4), Instruction(this::INC, this::ZPX, 6), Instruction(this::XXX, this::IMP, 6), Instruction(this::SED, this::IMP, 2), Instruction(this::SBC, this::ABY, 4), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 7), Instruction(this::NOP, this::IMP, 4), Instruction(this::SBC, this::ABX, 4), Instruction(this::INC, this::ABX, 7), Instruction(this::XXX, this::IMP, 7),
+            )
     }
 
     private fun Fetch(): Int {
@@ -94,7 +107,6 @@ class Cpu6502(
 
     // addressing modes (opcodes)
     // https://www.youtube.com/watch?v=TGcjn8zMhfM
-    private val _opCode: Byte = 0x00 // current operation code
 
 
     fun IMP(): Byte {
@@ -496,7 +508,7 @@ class Cpu6502(
         val tmp = fetched shr 1
         SetFlag(Flags.Z, tmp == 0x00)
         SetFlag(Flags.N, tmp and 0x0080 == 1)
-        if (lookup.get(_opCode.toInt()).addrmode == this::IMP) {
+        if (lookup.get(opCode).addrmode == this::IMP) {
             a = (tmp and 0x00FF)
         } else {
             Write(addressAbs, (tmp and 0x00FF))
@@ -567,7 +579,7 @@ class Cpu6502(
         SetFlag(Flags.Z, tmp == 0x00)
         SetFlag(Flags.N, tmp and 0x80 == 1)
         SetFlag(Flags.C, tmp and 0x0001 == 1)
-        if (lookup.get(_opCode.toInt()).opcode == this::IMP) {
+        if (lookup.get(opCode).opcode == this::IMP) {
             a = (tmp and 0x00FF)
         } else {
             Write(addressAbs, (tmp and 0x00FF))
