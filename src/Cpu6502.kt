@@ -59,7 +59,7 @@ class Cpu6502{
             )
     }
     private fun Fetch(): UByte {
-        if (lookup[opCode].addrmode !== this::IMP) {
+        if (lookup[opCode].addrmode != Cpu6502::IMP) {
             fetched = Read(addressAbs)
         }
         return fetched
@@ -84,21 +84,20 @@ class Cpu6502{
             // Always set the unused status flag bit to 1
             SetFlag(Flags.U, true)
         }
-
         cycles -= 1
     }
 
     fun Reset(){
         addressAbs = 65532u
-        val hi = Read((addressAbs + 1u) )
         val lo = Read((addressAbs + 0u) )
+        val hi = Read((addressAbs + 1u) )
         // set address
-        pc = (hi.toInt() shl 8 or lo.toInt()).toUInt()
+        pc = ((hi.toInt() shl 8) or lo.toInt()).toUInt()
         // reset all registers
         a = 0u
         x = 0u
         y = 0u
-        sp = 0u
+        sp = 253u
         sr = 0u
         // reset helper variables
         addressRel = 0u
@@ -106,7 +105,6 @@ class Cpu6502{
         fetched = 0u
         //set cycles
         cycles = 8
-
     }
 
     private fun Irq()
@@ -129,7 +127,7 @@ class Cpu6502{
         }
     }
     
-    private fun GetFlag(f : Flags) : Int {
+    public fun GetFlag(f : Flags) : Int {
         return if ((sr and f.value.toUByte()) > 0u) 1 else 0
     }
 
@@ -182,15 +180,15 @@ class Cpu6502{
         pc++
         val tmpPtr = (hi.toInt() shl 8 or lo.toInt())
         //implement hardware bug
-        addressAbs = (Read((tmpPtr and 0xFF00).toUInt()) or Read(tmpPtr.toUInt())).toUInt()
+        addressAbs = (Read((tmpPtr + 1).toUInt()) or Read(tmpPtr.toUInt())).toUInt()
         return 0
     }
 
     private fun IZX(): Byte {
         val tmp = Read(pc)
         pc++
-        val lo = Read((tmp + x and 255u))
-        val hi = Read((tmp + x + 1u and 255u))
+        val lo = Read(((tmp + x) and 255u))
+        val hi = Read(((tmp + x + 1u) and 255u))
         addressAbs = (hi.toInt() shl 8 or lo.toInt()).toUInt()
         return 0
     }
@@ -198,11 +196,11 @@ class Cpu6502{
     private fun IZY(): Byte {
         val tmp = Read(pc)
         pc++
-        val lo = Read((tmp + x and 255u))
-        val hi = Read((tmp + x + 1u and 255u))
+        val lo = Read(((tmp and 255u).toUInt()))
+        val hi = Read(((tmp + 1u) and 255u))
         addressAbs = (hi.toInt() shl 8 or lo.toInt()).toUInt()
         addressAbs += y
-        return if ((addressAbs and 65280u).toInt() !== hi.toInt() shl 8) {
+        return if ((addressAbs and 65280u).toInt() != hi.toInt() shl 8) {
             1
         } else {
             0
@@ -217,14 +215,14 @@ class Cpu6502{
     }
 
     private fun ZPX(): Byte {
-        addressAbs = Read((pc + x)).toUInt()
+        addressAbs = (Read(pc) + x)
         pc++
         addressAbs = (addressAbs and 255u)
         return 0
     }
 
     private fun ZPY(): Byte {
-        addressAbs = Read((pc + y)).toUInt()
+        addressAbs = (Read(pc) + y)
         pc++
         addressAbs = (addressAbs and 255u)
         return 0
@@ -254,13 +252,26 @@ class Cpu6502{
 
     private fun AND(): Byte {
         Fetch()
-        a = (fetched and a)
+        a = (a and fetched)
+        SetFlag(Flags.Z, a.toInt() == 0x00);
+        SetFlag(Flags.N, (a.toInt() and 0x80)==1);
         return 0
     }
 
     private fun ASL(): Byte {
         Fetch()
-        a = (a.toInt() shl 1).toUByte()
+        var tmp = fetched.toInt() shl 1
+        SetFlag(Flags.C, tmp > 255)
+        SetFlag(Flags.Z, (tmp and 255) == 0)
+        SetFlag(Flags.N, (tmp and 128) == 1)
+        if (lookup[opCode].addrmode == Cpu6502::IMP)
+        {
+            a = (tmp and 0x00FF).toUByte()
+        }
+        else
+        {
+            Write(addressAbs, (tmp and 0x00FF).toUByte())
+        }
         return 0
     }
 
@@ -270,7 +281,7 @@ class Cpu6502{
             cycles++
             addressAbs = (pc + addressRel)
             if ((addressAbs and 65280u) != (pc and 65280u)) {
-                cycles += 1
+                cycles++
             }
             pc = addressAbs
         }
@@ -278,7 +289,6 @@ class Cpu6502{
     }
 
     private fun BCS(): Byte {
-        Fetch()
         if (GetFlag(Flags.C) == 1) {
             cycles++
             addressAbs = (pc + addressRel)
@@ -312,7 +322,6 @@ class Cpu6502{
     }
 
     private fun BMI(): Byte {
-        Fetch()
         if (GetFlag(Flags.N) == 1) {
             cycles++
             addressAbs = (pc + addressRel)
@@ -325,7 +334,6 @@ class Cpu6502{
     }
 
     private fun BNE(): Byte {
-        Fetch()
         if (GetFlag(Flags.Z) == 0) {
             cycles++
             addressAbs = (pc + addressRel)
@@ -338,7 +346,6 @@ class Cpu6502{
     }
 
     private fun BPL(): Byte {
-        Fetch()
         if (GetFlag(Flags.N) == 0) {
             cycles++
             addressAbs = (pc + addressRel)
@@ -353,20 +360,23 @@ class Cpu6502{
     private fun BRK(): Byte {
         pc++
         SetFlag(Flags.I, true)
-        Write((0x0100u + sp), (pc shr 8 and 255u).toUByte())
+        Write((0x0100u + sp), ((pc shr 8) and 255u).toUByte())
         sp--
         Write((0x0100u + sp), (pc and 255u).toUByte())
         sp--
+
+        SetFlag(Flags.B, true)
+        Write((0x0100u + sp), sr)
+        pc = (Read(0xFFFEu).toUInt() or (Read(0xFFFEu).toInt() shl 8).toUInt())
         return 0
     }
 
     private fun BVC(): Byte {
-        Fetch()
         if (GetFlag(Flags.V) == 0) {
             cycles++
             addressAbs = (pc + addressRel)
             if (addressAbs and 65280u != pc and 65280u) {
-                cycles += 1
+                cycles++
             }
             pc = addressAbs
         }
@@ -374,7 +384,6 @@ class Cpu6502{
     }
 
     private fun BVS(): Byte {
-        Fetch()
         if (GetFlag(Flags.V) == 1) {
             cycles++
             addressAbs = (pc + addressRel)
@@ -410,7 +419,7 @@ class Cpu6502{
         Fetch()
         val tmp = a - fetched
         SetFlag(Flags.Z, (tmp and 255u).toInt() == 0x0000)
-        SetFlag(Flags.C, a > fetched)
+        SetFlag(Flags.C, a >= fetched)
         SetFlag(Flags.N, (tmp and 128u).toInt() == 1)
         return 1
     }
@@ -419,7 +428,7 @@ class Cpu6502{
         Fetch()
         val tmp = x - fetched
         SetFlag(Flags.Z, (tmp and 255u).toInt() == 0x0000)
-        SetFlag(Flags.C, x > fetched)
+        SetFlag(Flags.C, x >= fetched)
         SetFlag(Flags.N, (tmp and 128u).toInt() == 1)
         return 0
     }
@@ -428,30 +437,30 @@ class Cpu6502{
         Fetch()
         val tmp = y - fetched
         SetFlag(Flags.Z, (tmp and 255u).toInt() == 0x0000)
-        SetFlag(Flags.C, y > fetched)
+        SetFlag(Flags.C, y >= fetched)
         SetFlag(Flags.N, (tmp and 128u).toInt() == 1)
         return 0
     }
 
     private fun DEC(): Byte {
         Fetch()
-        fetched--
+        val tmp = fetched.toInt() - 1
         Write(addressAbs, fetched)
-        SetFlag(Flags.Z, fetched.toInt() and 0x00FF == 0x0000)
-        SetFlag(Flags.N, fetched.toInt() and 0x0080 == 1)
+        SetFlag(Flags.Z, tmp and 0x00FF == 0x0000)
+        SetFlag(Flags.N, tmp and 0x0080 == 1)
         return 0
     }
 
     private fun DEX(): Byte {
         x--
-        SetFlag(Flags.Z, x.toInt() and 0x00FF == 0x0000)
+        SetFlag(Flags.Z, x.toInt() == 0)
         SetFlag(Flags.N, x.toInt() and 0x0080 == 1)
         return 0
     }
 
     private fun DEY(): Byte {
         y--
-        SetFlag(Flags.Z, y.toInt() and 0x00FF == 0x0000)
+        SetFlag(Flags.Z, y.toInt() == 0x0000)
         SetFlag(Flags.N, y.toInt() and 0x0080 == 1)
         return 0
     }
@@ -466,8 +475,8 @@ class Cpu6502{
 
     private fun INC(): Byte {
         Fetch()
-        fetched++
-        Write(addressAbs, fetched)
+        val tmp = fetched.toInt() + 1
+        Write(addressAbs, (tmp and 0x00ff).toUByte())
         SetFlag(Flags.Z, fetched.toInt() and 0x00FF == 0x0000)
         SetFlag(Flags.N, fetched.toInt() and 0x0080 == 1)
         return 0
@@ -496,7 +505,7 @@ class Cpu6502{
         pc--
         Write((0x0100.toUByte() + sp), (pc shr 8 and 255u).toUByte())
         sp--
-        Write((0x0100.toUByte() + sp), ((pc shr 8 and 255u).toUByte()))
+        Write((0x0100.toUByte() + sp), ((pc and 255u).toUByte()))
         sp--
         pc = addressAbs
         return 0
@@ -530,9 +539,9 @@ class Cpu6502{
         Fetch()
         SetFlag(Flags.C, fetched and 0x0001u == fetched)
         val tmp = fetched.toInt() shr 1
-        SetFlag(Flags.Z, tmp == 0x00)
+        SetFlag(Flags.Z, tmp and 0x00ff == 0x00)
         SetFlag(Flags.N, tmp and 0x0080 == 1)
-        if (lookup[opCode].addrmode == this::IMP) {
+        if (lookup[opCode].addrmode == Cpu6502::IMP) {
             a = (tmp and 0x00FF).toUByte()
         } else {
             Write(addressAbs, (tmp and 0x00FF).toUByte())
@@ -560,11 +569,10 @@ class Cpu6502{
     }
 
     private fun PHP(): Byte {
-        // SetFlag(Flags.B, true);
-        sp++
-        Write((0x0100u + sp), sr)
-        // SetFlag(Flags.B, false);
-        // SetFlag(Flags.U, false);
+        Write((0x0100u + sp), (sr.toInt() or GetFlag(Flags.B) or GetFlag(Flags.U)).toUByte())
+        SetFlag(Flags.B, false);
+        SetFlag(Flags.U, false);
+        sp--
         return 0
     }
 
@@ -589,7 +597,7 @@ class Cpu6502{
         SetFlag(Flags.Z, tmp == 0x00)
         SetFlag(Flags.N, tmp and 0x80 == 1)
         SetFlag(Flags.C, tmp and 0x0001 == 1)
-        if (lookup[opCode].opcode == this::IMP) {
+        if (lookup[opCode].opcode == Cpu6502::IMP) {
             a = (tmp and 0x00FF).toUByte()
         } else {
             Write(addressAbs, (tmp and 0x00FF).toUByte())
@@ -599,11 +607,11 @@ class Cpu6502{
 
     private fun ROR(): Byte {
         Fetch()
-        val tmp = fetched.toInt() shr 1 or (GetFlag(Flags.C) shl 7)
+        val tmp = (GetFlag(Flags.C) shl 7) or fetched.toInt() shr 1
         SetFlag(Flags.Z, tmp == 0x00)
         SetFlag(Flags.N, tmp and 0x80 == 1)
         SetFlag(Flags.C, tmp and 0x0001 == 1)
-        if (lookup[opCode].opcode == this::IMP) {
+        if (lookup[opCode].opcode == Cpu6502::IMP) {
             a = (tmp and 0x00FF).toUByte()
         } else {
             Write(addressAbs, (tmp and 0x00FF).toUByte())
@@ -703,7 +711,7 @@ class Cpu6502{
     }
 
     private fun TXS(): Byte {
-        sr = x
+        sp = x
         return 0
     }
 
@@ -736,7 +744,7 @@ class Cpu6502{
         bus.Write(address, data)
     }
 
-    // Those are debug functions to get status of diffrent registers
+    // Those are debug functions to get status of different registers
     public fun Info()
     {
         println("--------------------")
