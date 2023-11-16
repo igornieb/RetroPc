@@ -101,11 +101,9 @@ class Cpu6502{
         sp = 0u
         sr = 0u
         // reset helper variables
-        // reset helper variables
         addressRel = 0u
         addressAbs = 0u
         fetched = 0u
-        //set cycles
         //set cycles
         cycles = 8
 
