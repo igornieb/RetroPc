@@ -19,7 +19,7 @@ fun main()
 
     // executing instructions
     var ins = 0
-    while (ins < 16)
+    while (ins < 4) // this can be set to while(true) and everything should be fine, its 4 because we wan to execute first 4 instructions
     {
         cpu.Clock()
         ins += 1
