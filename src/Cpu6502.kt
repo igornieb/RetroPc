@@ -66,25 +66,31 @@ class Cpu6502{
     }
 
     fun Clock(){
-        if (cycles == 0)
-        {
-            opCode = Read(pc).toInt()
-            SetFlag(Flags.U, true)
-            pc++
-            cycles = lookup[opCode].cycles
-            var additionalCycle1 = (lookup[opCode].addrmode)()
-
-            // Perform operation
-            var additionalCycle2 = (lookup[opCode].opcode)()
-
-            // The addressmode and opcode may have altered the number
-            // of cycles this instruction requires before its completed
-            cycles += (additionalCycle1.toInt() and additionalCycle2.toInt())
-
-            // Always set the unused status flag bit to 1
-            SetFlag(Flags.U, true)
-        }
-        cycles -= 1
+        opCode = Read(pc).toInt()
+        SetFlag(Flags.U, true)
+        pc++
+        (lookup[opCode].addrmode)()
+        (lookup[opCode].opcode)()
+        SetFlag(Flags.U, true)
+//        if (cycles == 0)
+//        {
+//            opCode = Read(pc).toInt()
+//            SetFlag(Flags.U, true)
+//            pc++
+//            cycles = lookup[opCode].cycles
+//            var additionalCycle1 = (lookup[opCode].addrmode)()
+//
+//            // Perform operation
+//            var additionalCycle2 = (lookup[opCode].opcode)()
+//
+//            // The addressmode and opcode may have altered the number
+//            // of cycles this instruction requires before its completed
+//            cycles += (additionalCycle1.toInt() and additionalCycle2.toInt())
+//
+//            // Always set the unused status flag bit to 1
+//            SetFlag(Flags.U, true)
+//        }
+//        cycles -= 1
     }
 
     fun Reset(){
