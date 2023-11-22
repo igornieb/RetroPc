@@ -359,7 +359,7 @@ class Cpu6502{
     }
 
     // Branch if Equal
-    // Function: if Z==0: pc = address
+    // Function: if Z==1: pc = address
     private fun BEQ(): Byte {
         if (GetFlag(Flags.Z) == 1) {
             cycles++
@@ -413,7 +413,7 @@ class Cpu6502{
     }
 
     // Branch if Positive
-    // Function: if Z==1: pc = address
+    // Function: if N==0: pc = address
     private fun BPL(): Byte {
         if (GetFlag(Flags.N) == 0) {
             cycles++
@@ -625,7 +625,7 @@ class Cpu6502{
         return 0
     }
 
-    // Jump to Subroutine
+    // Load the Accumulator
     // Function: A = M
     // Flags: N, Z
     private fun LDA(): Byte {
