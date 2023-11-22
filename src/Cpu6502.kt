@@ -292,7 +292,7 @@ class Cpu6502{
         val tmp = a + fetched + GetFlag(Flags.C).toUInt()
         SetFlag(Flags.C, tmp > 255u)
         SetFlag(Flags.Z, (tmp and 255u).toInt() == 0)
-        SetFlag(Flags.V, (((a xor fetched).toInt() and (a xor tmp.toUByte()).toInt()).inv() and 0x80) == 0x80)
+        SetFlag(Flags.V, (((a xor fetched).inv().toInt() and (a xor tmp.toUByte()).toInt()) and 0x80) == 0x80)
         SetFlag(Flags.N, (tmp and 128u).toInt() == 0x80)
         a = (tmp and 255u).toUByte()
         return 1
@@ -803,7 +803,7 @@ class Cpu6502{
         val tmp = a + value.toUInt() + GetFlag(Flags.C).toUInt()
         SetFlag(Flags.C, tmp > 255u)
         SetFlag(Flags.Z, (tmp and 255u).toInt() == 0)
-        SetFlag(Flags.V, (((a xor fetched).toInt() and (a xor tmp.toUByte()).toInt()).inv() and 0x80) == 0x80)
+        SetFlag(Flags.V, (((a xor fetched).toInt().inv() and (a xor tmp.toUByte()).toInt()) and 0x80) == 0x80)
         SetFlag(Flags.N, (tmp and 128u).toInt() == 0x80)
         a = (tmp and 255u).toUByte()
         return 1
