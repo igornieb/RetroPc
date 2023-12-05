@@ -917,6 +917,23 @@ class Cpu6502{
         this.bus = bus
     }
 
+    // executing instructions passed in hex format given the number of commands
+    fun runInstruction(hex: String, length: Int) {
+        this.loadInstruction(0x00FFu, hex)
+
+
+        //cpu.Info()
+        repeat(length) {
+            this.Clock()
+            //cpu.Info()
+        }
+    }
+
+    public fun loadInstruction(address:UInt, data:String) {
+        this.bus.LoadInstructions(address, data)
+        this.Reset()
+    }
+
     private fun Read(address : UInt) : UByte
     {
         return bus.Read(address)
