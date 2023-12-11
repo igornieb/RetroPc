@@ -35,7 +35,7 @@ fun testLDA(cpu: Cpu6502) {
 fun nestest() {
     var prevLine: String = ""
     File("src/Tests/nestest.txt").forEachLine {
-        // Pass the previous line into test, because
+        // Pass the previous line into test, to compare with the state after instruction is processed
         if (prevLine != "") {
             runNestestLine(it, prevLine) //Run the command from previous line and check with current line status
             prevLine = it
