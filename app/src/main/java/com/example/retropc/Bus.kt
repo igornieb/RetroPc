@@ -1,3 +1,7 @@
+package com.example.retropc
+
+import android.util.Log
+
 class Bus {
     @OptIn(ExperimentalUnsignedTypes::class)
     private var ram : UByteArray = UByteArray(256*256)
@@ -36,7 +40,10 @@ class Bus {
         // after Reset method is called on cpu, this location will be read and execution will start from address
         ram[0xFFFC] = address.toUByte()
 
-        var hex : List<String> = data.split(" ")
+        // BM: for safety remove new line chars
+        var hex : List<String> = data.replace("\n","").split(" ")
+
+
         var tmpAddress = address
         for (element in hex)
         {

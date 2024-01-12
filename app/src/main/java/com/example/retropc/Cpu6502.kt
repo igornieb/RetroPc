@@ -1,3 +1,5 @@
+package com.example.retropc
+
 data class Instruction(var opcode:() -> Byte, var addrmode:() -> Byte, var cycles:Int)
 
 enum class Flags(val value:Int)
@@ -60,7 +62,7 @@ class Cpu6502{
             Instruction(this::BNE, this::REL, 2), Instruction(this::CMP, this::IZY, 5), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::NOP, this::IMP, 4), Instruction(this::CMP, this::ZPX, 4), Instruction(this::DEC, this::ZPX, 6), Instruction(this::XXX, this::IMP, 6), Instruction(this::CLD, this::IMP, 2), Instruction(this::CMP, this::ABY, 4), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 7), Instruction(this::CPX, this::ABS, 4), Instruction(this::CMP, this::ABX, 4), Instruction(this::DEC, this::ABX, 7), Instruction(this::XXX, this::IMP, 7),
             Instruction(this::CPX, this::IMM, 2), Instruction(this::SBC, this::IZX, 6), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::CPX, this::ZPG, 3), Instruction(this::SBC, this::ZPG, 3), Instruction(this::INC, this::ZPG, 5), Instruction(this::XXX, this::IMP, 5), Instruction(this::INX, this::IMP, 2), Instruction(this::SBC, this::IMM, 2), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 2), Instruction(this::CPX, this::ABS, 4), Instruction(this::SBC, this::ABS, 4), Instruction(this::INC, this::ABS, 6), Instruction(this::XXX, this::IMP, 6),
             Instruction(this::BEQ, this::REL, 2), Instruction(this::SBC, this::IZY, 5), Instruction(this::XXX, this::IMP, 2), Instruction(this::XXX, this::IMP, 8), Instruction(this::NOP, this::IMP, 4), Instruction(this::SBC, this::ZPX, 4), Instruction(this::INC, this::ZPX, 6), Instruction(this::XXX, this::IMP, 6), Instruction(this::SED, this::IMP, 2), Instruction(this::SBC, this::ABY, 4), Instruction(this::NOP, this::IMP, 2), Instruction(this::XXX, this::IMP, 7), Instruction(this::NOP, this::IMP, 4), Instruction(this::SBC, this::ABX, 4), Instruction(this::INC, this::ABX, 7), Instruction(this::XXX, this::IMP, 7),
-            )
+        )
     }
     private fun Fetch(): UByte {
         if (lookup[opCode].addrmode != Cpu6502::IMP) {
@@ -142,7 +144,7 @@ class Cpu6502{
             sr = sr and f.value.inv().toUByte()
         }
     }
-    
+
     public fun GetFlag(f : Flags) : Int {
         return if ((sr and f.value.toUByte()) > 0u) 1 else 0
     }
@@ -968,5 +970,6 @@ class Cpu6502{
     {
         return pc
     }
+
 
 }
