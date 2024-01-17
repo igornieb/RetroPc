@@ -135,7 +135,7 @@ class Cpu6502{
         // TODO
     }
 
-    private fun SetFlag(f : Flags, v: Boolean)
+    public fun SetFlag(f : Flags, v: Boolean)
     {
         if (v){
             sr = sr or f.value.toUByte()
@@ -143,6 +143,11 @@ class Cpu6502{
         else{
             sr = sr and f.value.inv().toUByte()
         }
+    }
+
+    public fun SetFlags(flags: UByte): UByte {
+        this.sr = flags;
+        return this.sr
     }
 
     public fun GetFlag(f : Flags) : Int {
