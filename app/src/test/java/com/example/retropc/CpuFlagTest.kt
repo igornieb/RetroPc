@@ -4,17 +4,11 @@ import org.junit.Test
 import org.junit.Assert.assertEquals
 import org.junit.Before
 
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * See [testing documentation](http://d.android.com/tools/testing).
- */
 class CpuFlagTest {
     private lateinit var cpu: Cpu6502
 
     @Before
     fun setup() {
-        // Assuming you have a Cpu6502 instance
         cpu = Cpu6502()
     }
 
@@ -80,9 +74,6 @@ class CpuFlagTest {
 
         // Assert
         assertEquals(flag.value.toUByte(), cpu.Sr())
-
-        // Reset for the next test
-        cpu.SetFlags(initialSr)
     }
 
     private fun testSetFlagFalse(flag: Flags) {
@@ -100,8 +91,5 @@ class CpuFlagTest {
 
         // Assert
         assertEquals(flag.value.inv().toUByte(), cpu.Sr())
-
-        // Reset for the next test
-        cpu.SetFlags(initialSr)
     }
 }

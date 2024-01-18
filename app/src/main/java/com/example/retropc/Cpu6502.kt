@@ -639,7 +639,7 @@ class Cpu6502{
         Fetch()
         a = fetched
         SetFlag(Flags.Z, fetched.toInt() == 0x00)
-        SetFlag(Flags.N, fetched.toInt() and 0x80 == 0x80)
+        SetFlag(Flags.N, ((fetched.toInt() and 0x80) == 0x80))
         return 1
     }
 
@@ -929,10 +929,10 @@ class Cpu6502{
         this.bus.LoadInstructions(0x00FFu, hex)
         this.Reset()
 
-        //cpu.Info()
+        //this.Info()
         repeat(length) {
             this.Clock()
-            //cpu.Info()
+            //this.Info()
         }
     }
 
@@ -953,6 +953,7 @@ class Cpu6502{
         println("register A ${a}")
         println("register X ${x}")
         println("register Y ${y}")
+        println("flags: ${this.Sr().toString(2)}")
         println("stack pointer ${sp}")
         println("stack register ${sr}")
         println("program counter ${pc}")
