@@ -264,7 +264,165 @@ class CpuInstructionTest {
         //assertEquals((8).toUByte(), cpu.A())
     }
 
-    //TODO Branch instructions
+    @Test
+    fun testBCCWithoutCarry() {
+        //Assembly
+        /* LDA #$02
+        BCC label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x02 to accumulator
+        * Branch to label if carry clear
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 02 90 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x02.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBCCWithCarry() {
+        //Assembly
+        /* LDA #$02
+        SEC
+        BCC label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x02 to accumulator
+        * set carry flag
+        * Branch to label if carry clear
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 02 38 90 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x04.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBCSWithoutCarry() {
+        //Assembly
+        /* LDA #$02
+        BCS label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x02 to accumulator
+        * Branch to label if carry set
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 02 b0 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x04.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBCSWithCarry() {
+        //Assembly
+        /* LDA #$02
+        SEC
+        BCS label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x02 to accumulator
+        * set carry flag
+        * Branch to label if carry set
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 02 38 b0 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x02.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBCSWithZero() {
+        //Assembly
+        /* LDA #$00
+        BEQ label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x00 to accumulator
+        * Branch to label if zero flag set
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 00 f0 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x00.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBEQWithoutZero() {
+        //Assembly
+        /* LDA #$02
+        BCS label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x02 to accumulator
+        * Branch to label if zero flag set
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 02 f0 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x04.toUByte(), cpu.A())
+    }
 
     @Test
     fun testBIT() {
@@ -353,7 +511,7 @@ class CpuInstructionTest {
         /* Store 0x5 in accumulator */
 
         // Arrange
-        var hex = "a9 00" //
+        var hex = "a9 00"
         var instruction_length = 1
 
         // Act
@@ -365,6 +523,24 @@ class CpuInstructionTest {
         assertEquals(1, cpu.GetFlag(Flags.Z))
     }
 
+    @Test
+    fun testJMP() {
+        //Assembly
+        /* JMP $0200 */
+
+        // Instructions
+        /* Jump to memory location 0x0200 */
+
+        // Arrange
+        var hex = "4c 00 02"
+        var instruction_length = 1
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x0200.toUInt(), cpu.Pc())
+    }
 
 
 
