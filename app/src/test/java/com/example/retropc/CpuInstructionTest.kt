@@ -373,7 +373,7 @@ class CpuInstructionTest {
     }
 
     @Test
-    fun testBCSWithZero() {
+    fun testBEQWithZero() {
         //Assembly
         /* LDA #$00
         BEQ label
@@ -402,7 +402,7 @@ class CpuInstructionTest {
     fun testBEQWithoutZero() {
         //Assembly
         /* LDA #$02
-        BCS label
+        BEQ label
         LDA #$04
         label: */
 
@@ -414,6 +414,273 @@ class CpuInstructionTest {
 
         // Arrange
         var hex = "a9 02 f0 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x04.toUByte(), cpu.A())
+    }
+
+
+    @Test
+    fun testBNEWithZero() {
+        //Assembly
+        /* LDA #$00
+        BNE label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x00 to accumulator
+        * Branch to label if zero flag clear
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 00 d0 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x04.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBNEWithoutZero() {
+        //Assembly
+        /* LDA #$02
+        BNE label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x02 to accumulator
+        * Branch to label if zero flag clear
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 02 d0 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x02.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBMIWithNegative() {
+        //Assembly
+        /* LDA #$80
+        BMI label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x80 (-128) to accumulator
+        * Branch to label negative if negative flag is set
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 80 30 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x00.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBMIWithoutNegative() {
+        //Assembly
+        /* LDA #$08
+        BMI label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x08 to accumulator
+        * Branch to label if negative flag set
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 08 30 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x04.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBPLWithNegative() {
+        //Assembly
+        /* LDA #$80
+        BPL label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x80 (-128) to accumulator
+        * Branch to label negative if negative flag is clear
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 80 10 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x04.toUByte(), cpu.A())
+    }
+
+    //TODO fix
+    @Test
+    fun testBPLWithoutNegative() {
+        //Assembly
+        /* LDA #$02
+        BPL label
+        LDA #$05
+        label: */
+
+        // Instructions
+        /* Load 0x02 to accumulator
+        * Branch to label if negative flag clear
+        * load 0x05 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 02 10 02 a9 05"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x05.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBVCWithOverflow() {
+        //Assembly
+        /* LDA #$7F
+        ADC #$01
+        BVC label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x7f to accumulator
+        * Add 1 to accumulator to set overflow flag
+        * Branch to label if Overflow flag clear
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 7f 69 01 50 02 a9 04"
+        var instruction_length = 5
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x04.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBVCWithoutOverflow() {
+        //Assembly
+        /* LDA #$02
+        BVC label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x02 to accumulator
+        * Branch to label if overflow flag clear
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 02 50 02 a9 04"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x02.toUByte(), cpu.A())
+    }
+
+
+    @Test
+    fun testBVSWithOverflow() {
+        //Assembly
+        /* LDA #$7F
+        ADC #$01
+        BVS label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x7f to accumulator
+        * Add 1 to accumulator to set overflow flag
+        * Branch to label if Overflow flag set
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 7f 69 01 70 02 a9 04"
+        var instruction_length = 5
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0x80.toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testBVSWithoutOverflow() {
+        //Assembly
+        /* LDA #$02
+        BVS label
+        LDA #$04
+        label: */
+
+        // Instructions
+        /* Load 0x02 to accumulator
+        * Branch to label if overflow flag set
+        * load 0x04 to accumulator
+        * label */
+
+        // Arrange
+        var hex = "a9 02 70 02 a9 04"
         var instruction_length = 4
 
 
