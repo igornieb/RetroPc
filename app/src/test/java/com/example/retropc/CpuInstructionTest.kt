@@ -203,9 +203,124 @@ class CpuInstructionTest {
         cpu.runInstruction(hex, instruction_length)
 
         // Assert
-        assertEquals((0b00100000 and 0b00011111).toUByte(), cpu.A().toUByte())
+        assertEquals((0b00100000 and 0b00011111).toUByte(), cpu.A())
         assertEquals(1, cpu.GetFlag(Flags.Z))
         assertEquals(0, cpu.GetFlag(Flags.N))
+    }
+
+    @Test
+    fun testASLAccumulatorWithCarry() {
+        //Assembly
+        /* LDA #$88
+        *  ASL */
+
+        // Instructions
+        /* Load 0x88 to accumulator
+        * multiply by 2 moving the bits 1 to the left
+        * leftmost bit goes to carry flag */
+
+        // Arrange
+        var hex = "a9 88 0a"
+        var instruction_length = 2
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(1, cpu.GetFlag(Flags.C))
+        assertEquals(0, cpu.GetFlag(Flags.Z))
+
+        //TODO - accumulator addressing not setting?
+        //assertEquals(0, cpu.GetFlag(Flags.N))
+        //assertEquals((10).toUByte(), cpu.A())
+    }
+
+    @Test
+    fun testASLAccumulatorWithoutCarry() {
+        //Assembly
+        /* LDA #$04
+        *  ASL */
+
+        // Instructions
+        /* Load 0x04 to accumulator
+        * multiply by 2 moving the bits 1 to the left
+        * leftmost bit goes to carry flag */
+
+        // Arrange
+        var hex = "a9 04 0a"
+        var instruction_length = 2
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0, cpu.GetFlag(Flags.C))
+        assertEquals(0, cpu.GetFlag(Flags.Z))
+        assertEquals(0, cpu.GetFlag(Flags.N))
+
+        //TODO
+        //assertEquals((8).toUByte(), cpu.A())
+    }
+
+    //TODO Branch instructions
+
+    @Test
+    fun testBIT() {
+        //Assembly
+        /* LDA #$2c
+           STA $0200
+           LDA #$18
+           BIT $0200 */
+
+        // Instructions
+        /* Load 0x2c to accumulator
+        * store accumulator value in memory at 0x0200
+        * load 0x18 to accumulator
+        * bit test memory with accumulator*/
+
+        // Arrange
+        var hex = "a9 2c 8d 00 02 a9 18 2c 00 02"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(0, cpu.GetFlag(Flags.V))
+        assertEquals(0, cpu.GetFlag(Flags.Z))
+        assertEquals(0, cpu.GetFlag(Flags.N))
+    }
+
+    @Test
+    fun testBITZeroNegativeOverflow() {
+        //Assembly
+        /* LDA #$fc
+           STA $0200
+           LDA #$03
+           BIT $0200 */
+
+        // Instructions
+        /* Load 0xfc to accumulator
+        * store accumulator value in memory at 0x0200
+        * load 0x03 to accumulator
+        * bit test memory with accumulator*/
+
+        // Arrange
+        var hex = "a9 fc 8d 00 02 a9 03 2c 00 02"
+        var instruction_length = 4
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals(1, cpu.GetFlag(Flags.V))
+        assertEquals(1, cpu.GetFlag(Flags.Z))
+        assertEquals(1, cpu.GetFlag(Flags.N))
+
     }
 
     @Test

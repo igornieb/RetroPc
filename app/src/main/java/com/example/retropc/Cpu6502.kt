@@ -386,7 +386,7 @@ class Cpu6502{
         Fetch()
         val tmp = a and fetched
         SetFlag(Flags.Z, tmp.toInt() and 0xFF == 0x00)
-        SetFlag(Flags.N, (a.toInt() and 0x80)==0x80)
+        SetFlag(Flags.N, (fetched.toInt() and (1 shl 7)) == (1 shl 7))
         SetFlag(Flags.V, (fetched.toInt() and (1 shl 6)) == (1 shl 6))
         return 0
     }
