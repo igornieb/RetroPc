@@ -161,6 +161,54 @@ class CpuInstructionTest {
     }
 
     @Test
+    fun testAND() {
+        //Assembly
+        /* LDA #$1F
+        *  AND #$04 */
+
+        // Instructions
+        /* Load 00011111 to accumulator
+        * AND 0000100 with the accumulator and store in accumulator */
+
+        // Arrange
+        var hex = "a9 1f 29 04"
+        var instruction_length = 2
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals((0b00000100 and 0b00011111).toUByte(), cpu.A())
+        assertEquals(0, cpu.GetFlag(Flags.Z))
+        assertEquals(0, cpu.GetFlag(Flags.N))
+    }
+
+    @Test
+    fun testANDZero() {
+        //Assembly
+        /* LDA #$1F
+        *  AND #$20 */
+
+        // Instructions
+        /* Load 00011111 to accumulator
+        * AND 00100000 with the accumulator and store in accumulator */
+
+        // Arrange
+        var hex = "a9 1f 29 20"
+        var instruction_length = 2
+
+
+        // Act
+        cpu.runInstruction(hex, instruction_length)
+
+        // Assert
+        assertEquals((0b00100000 and 0b00011111).toUByte(), cpu.A().toUByte())
+        assertEquals(1, cpu.GetFlag(Flags.Z))
+        assertEquals(0, cpu.GetFlag(Flags.N))
+    }
+
+    @Test
     fun testLDA() {
         //Assembly
         /* LDA #$05 */
