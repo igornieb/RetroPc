@@ -123,6 +123,12 @@ class Cpu6502{
         fetched = 0u
         //set cycles
         cycles = 8
+
+        // DEBUG
+        // just to see if it's working (500 - surely more than enough to execute all instructions)
+        for (i in 0 until 500) {
+            Clock()
+        }
     }
 
     private fun Irq()

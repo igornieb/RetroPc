@@ -10,7 +10,8 @@ import java.io.InputStreamReader
 class Model {
     val cpu = Cpu6502()
     val bus = Bus()
-
+    val ROWS = 36u
+    val COLUMNS = 39u // 24 bit color -> 3 Bytes for each pixel -> columns should be divisible by 3
     init {
         cpu.ConnectBus(bus)
         cpu.Reset()
@@ -20,21 +21,21 @@ class Model {
         var sb = StringBuilder()
 
         val start: UInt = 0x2000u;
-        // Screen memory (~16kB)
-//        val end: UInt = 0x5FFFu;
 
-        // Text screen dimensions are 40x42
-        for (i in 0u until 42u) {
-            for (j in 0u until 40u) {
-                sb.append(bus.Read(start + i * 40u + j))
+        for (i in 0u until ROWS) {
+            for (j in 0u until COLUMNS) {
+                sb.append(bus.Read(start + i * COLUMNS + j))
             }
             sb.append("\n")
+        }
+        for (j in 0u until COLUMNS) {
+            sb.append(bus.Read(start + ROWS * COLUMNS + j))
         }
 
         return sb.toString()
     }
 
-    fun setCode(uri: Uri?, contentResolver: ContentResolver) {
+    fun uploadCode(uri: Uri?, contentResolver: ContentResolver) {
         uri?.let {
 
             val inputStream = contentResolver.openInputStream(uri)
@@ -52,24 +53,19 @@ class Model {
 
     fun getPixelArray(): Array<Array<Color>> {
         val start = 0x2000u
-        val pixels: Array<Array<Color>> = Array(320) { Array(200) { Color.Black } }
+        val intRows = ROWS.toInt()
+        val intColumns = COLUMNS.toInt() / 3
+        val pixels: Array<Array<Color>> = Array(intRows) { Array(intColumns) { Color.Black } }
 
         var currentPixel = start
-        var color = 0
-        var red = 0
-        var green = 0
-        var blue = 0
 
-        for (i in 0 until 320) {
-            for (j in 0 until 200) {
-
-                // Gets 16 bit color value and converts it to RGB
-                color = (bus.Read(currentPixel++).toInt() shl 16) or bus.Read(currentPixel++).toInt()
-                red = (color and 0xF800) shr 8
-                green = (color and 0x07E0) shr 3
-                blue = (color and 0x001F) shl 3
-
-                pixels[i][j] = Color(red, green, blue)
+        for (i in 0 until intRows) {
+            for (j in 0 until intColumns) {
+                pixels[i][j] = Color(
+                    bus.Read(currentPixel++).toInt(),
+                    bus.Read(currentPixel++).toInt(),
+                    bus.Read(currentPixel++).toInt()
+                )
             }
         }
         return pixels

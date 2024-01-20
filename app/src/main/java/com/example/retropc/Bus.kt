@@ -1,7 +1,5 @@
 package com.example.retropc
 
-import android.util.Log
-
 class Bus {
     @OptIn(ExperimentalUnsignedTypes::class)
     private var ram : UByteArray = UByteArray(256*256)
