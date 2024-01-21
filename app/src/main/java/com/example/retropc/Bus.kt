@@ -50,6 +50,5 @@ class Bus {
             tmpAddress++
         }
         println("Program loaded");
-
     }
 }
