@@ -2,6 +2,7 @@ package com.example.retropc
 
 import android.content.ContentResolver
 import android.net.Uri
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -23,6 +24,12 @@ class MainViewModel : ViewModel() {
     fun resetAndStart() {
         if (isCodeLoaded) {
             model.cpu.Reset()
+            var i = 0
+            while (i<47) {          // Igor: tmp changes so we can execute tests[1].txt file, i will add function that does this part automatically
+                i+=1
+                model.cpu.Clock()
+                model.cpu.Info()
+            }
             isCodeLoaded = false
         }
     }

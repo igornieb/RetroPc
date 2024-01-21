@@ -20,7 +20,7 @@ class Model {
     fun getTextScreenContent(): String {
         var sb = StringBuilder()
 
-        val start: UInt = 0x2000u;
+        val start: UInt = 0x0200u;  // Igor: inna lokalizacja w pamieci
 
         for (i in 0u until ROWS) {
             for (j in 0u until COLUMNS) {
@@ -52,13 +52,12 @@ class Model {
     }
 
     fun getPixelArray(): Array<Array<Color>> {
-        val start = 0x2000u
+        val start = 0x0200u // Igor: inna lokalizacja w pamieci
         val intRows = ROWS.toInt()
         val intColumns = COLUMNS.toInt() / 3
         val pixels: Array<Array<Color>> = Array(intRows) { Array(intColumns) { Color.Black } }
 
         var currentPixel = start
-
         for (i in 0 until intRows) {
             for (j in 0 until intColumns) {
                 pixels[i][j] = Color(
