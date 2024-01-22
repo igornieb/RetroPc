@@ -5,11 +5,7 @@ class Bus {
     private var ram : UByteArray = UByteArray(256*256)
     private var cpu : Cpu6502 = Cpu6502()
     init {
-        // reset memory
-        for(i in (0..ram.size-1))
-        {
-            ram[i]=0u
-        }
+        this.ResetMemory()
 
         //connect cpu with bus
         cpu.ConnectBus(this)
@@ -50,5 +46,12 @@ class Bus {
             tmpAddress++
         }
         println("Program loaded");
+    }
+
+    fun ResetMemory() {
+        for(i in (ram.indices))
+        {
+            ram[i]=0u
+        }
     }
 }
