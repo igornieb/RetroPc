@@ -41,7 +41,7 @@ class Cpu6502{
     // current fetched data (used for instructions)
     private var fetched : UByte = 0.toUByte()
     // https://www.youtube.com/watch?v=TGcjn8zMhfM
-    private var opCode: Int = 0 // current operation code
+    public var opCode: Int = 0 // current operation code
     // cycles left for current instruction
     private var cycles : Int = 0
     init {

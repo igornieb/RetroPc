@@ -22,7 +22,7 @@ class MainViewModel : ViewModel() {
 
     fun resetAndStart() {
         if (isCodeLoaded) {
-            model.cpu.Reset()
+            model.executeCpuCode()
             isCodeLoaded = false
         }
     }

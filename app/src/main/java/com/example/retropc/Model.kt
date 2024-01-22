@@ -17,10 +17,21 @@ class Model {
         cpu.Reset()
     }
 
+    fun executeCpuCode() {
+        cpu.Reset() // reset cpu
+        while (true) {
+            cpu.Clock() // execute instruction
+            if (cpu.opCode==0)
+            {
+                break   // stops execution when there is no more instructions to execute
+            }
+        }
+    }
+
     fun getTextScreenContent(): String {
         var sb = StringBuilder()
 
-        val start: UInt = 0x2000u;
+        val start: UInt = 0x0200u;
 
         for (i in 0u until ROWS) {
             for (j in 0u until COLUMNS) {
@@ -52,7 +63,7 @@ class Model {
     }
 
     fun getPixelArray(): Array<Array<Color>> {
-        val start = 0x2000u
+        val start = 0x0200u
         val intRows = ROWS.toInt()
         val intColumns = COLUMNS.toInt() / 3
         val pixels: Array<Array<Color>> = Array(intRows) { Array(intColumns) { Color.Black } }
