@@ -56,6 +56,7 @@ class Model {
 
                 content?.let {
                     Log.d("FILE_CONTENT", content)
+                    bus.ResetMemory()   // reset memory content before loading new instructions
                     bus.LoadInstructions(0x00FFu, content)
                 }
             }
