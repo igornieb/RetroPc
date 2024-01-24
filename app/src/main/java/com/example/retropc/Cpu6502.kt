@@ -135,7 +135,7 @@ class Cpu6502{
         // TODO
     }
 
-    private fun SetFlag(f : Flags, v: Boolean)
+    public fun SetFlag(f : Flags, v: Boolean)
     {
         if (v){
             sr = sr or f.value.toUByte()
@@ -145,130 +145,135 @@ class Cpu6502{
         }
     }
 
+    public fun SetFlags(flags: UByte): UByte {
+        this.sr = flags;
+        return this.sr
+    }
+
     public fun GetFlag(f : Flags) : Int {
         return if ((sr and f.value.toUByte()) > 0u) 1 else 0
     }
+        // addressing modes
+        // they inform opcode (instruction) of which data to operate on
+        // https://www.youtube.com/watch?v=TGcjn8zMhfM
+        // https://blogs.oregonstate.edu/ericmorgan/2022/01/21/6502-addressing-modes/
 
-    // addressing modes
-    // they inform opcode (instruction) of which data to operate on
-    // https://www.youtube.com/watch?v=TGcjn8zMhfM
-    // https://blogs.oregonstate.edu/ericmorgan/2022/01/21/6502-addressing-modes/
-
-    private fun IMP(): Byte {
-        fetched = a
-        return 0
-    }
-    private fun IMM(): Byte {
-        // read one more byte following instruction
-        addressAbs = pc++
-        return 0
-    }
-
-    //Absolute
-    // ABS/X/Y reads two bytes from memory (low and high), increments this value by X or Y register
-    // If the resulting address changes the page, an additional clock cycle is required
-    private fun ABS(): Byte {
-        var lo = Read(pc)
-        pc++
-        var hi = Read(pc)
-        pc++
-        addressAbs = ((hi.toInt() shl 8) or lo.toInt()).toUInt()
-        return 0
-    }
-
-    private fun ABX(): Byte {
-        val lo = Read(pc)
-        pc++
-        val hi = Read(pc)
-        pc++
-        addressAbs = ((hi.toInt() shl 8) or lo.toInt()).toUInt()
-        addressAbs += x
-        return if ((addressAbs and 65280u).toInt() != hi.toInt() shl 8) 1 else 0
-    }
-
-    private fun ABY(): Byte {
-        val lo = Read(pc)
-        pc++
-        val hi = Read(pc)
-        pc++
-        addressAbs = ((hi.toInt() shl 8) or lo.toInt()).toUInt()
-        addressAbs += y
-        return if ((addressAbs and 65280u).toInt() != hi.toInt() shl 8) 1 else 0
-    }
-
-    // Indirect
-    // IND/IZX/Y - read value from memory (8 bit) , then read value  + x/y register (standard 16-bit address)
-    // first address that is read is a location in first 0x00 bytes of address range, so we read it one time instead of two.
-    private fun IND() : Byte {
-        val lo = Read(pc)
-        pc++
-        val hi = Read(pc)
-        pc++
-        val tmpPtr = (hi.toInt() shl 8 or lo.toInt())
-        // there should be a bug implementation here
-        addressAbs = (Read((tmpPtr + 1).toUInt()) or Read(tmpPtr.toUInt())).toUInt()
-        return 0
-    }
-    private fun IZX(): Byte {
-        val tmp = Read(pc)
-        pc++
-        val lo = Read(((tmp + x) and 255u))
-        val hi = Read(((tmp + x + 1u) and 255u))
-        addressAbs = (hi.toInt() shl 8 or lo.toInt()).toUInt()
-        return 0
-    }
-
-    private fun IZY(): Byte {
-        val tmp = Read(pc)
-        pc++
-        val lo = Read(((tmp and 255u).toUInt()))
-        val hi = Read(((tmp + 1u) and 255u))
-        addressAbs = (hi.toInt() shl 8 or lo.toInt()).toUInt()
-        addressAbs += y
-        return if ((addressAbs and 65280u).toInt() != hi.toInt() shl 8) {
-            1
-        } else {
-            0
+        private fun IMP(): Byte {
+            fetched = a
+            return 0
         }
-    }
 
-    // Zeropage
-    // ZPG/X/Y read byte representing address from memory + optional offset x/y
-    // address that is read is a location in first 0xFF bytes of address range.
-    // This only requires one byte instead of the usual two.
-
-    private fun ZPG(): Byte {
-        addressAbs = Read(pc).toUInt()
-        pc++
-        addressAbs = addressAbs and 255u
-        return 0
-    }
-
-    private fun ZPX(): Byte {
-        addressAbs = (Read(pc) + x)
-        pc++
-        addressAbs = (addressAbs and 255u)
-        return 0
-    }
-
-    private fun ZPY(): Byte {
-        addressAbs = (Read(pc) + y)
-        pc++
-        addressAbs = (addressAbs and 255u)
-        return 0
-    }
-
-    // Relative
-    // read byte representing address from memory, this address needs to be between -128 and 127
-    private fun REL(): Byte {
-        addressRel = Read(pc).toUInt()
-        pc++
-        if (addressRel and 128u == addressRel)
-        {
-            addressRel = addressRel or 65280u
+        private fun IMM(): Byte {
+            // read one more byte following instruction
+            addressAbs = pc++
+            return 0
         }
-        return 0
-    }
+
+        //Absolute
+        // ABS/X/Y reads two bytes from memory (low and high), increments this value by X or Y register
+        // If the resulting address changes the page, an additional clock cycle is required
+        private fun ABS(): Byte {
+            var lo = Read(pc)
+            pc++
+            var hi = Read(pc)
+            pc++
+            addressAbs = ((hi.toInt() shl 8) or lo.toInt()).toUInt()
+            return 0
+        }
+
+        private fun ABX(): Byte {
+            val lo = Read(pc)
+            pc++
+            val hi = Read(pc)
+            pc++
+            addressAbs = ((hi.toInt() shl 8) or lo.toInt()).toUInt()
+            addressAbs += x
+            return if ((addressAbs and 65280u).toInt() != hi.toInt() shl 8) 1 else 0
+        }
+
+        private fun ABY(): Byte {
+            val lo = Read(pc)
+            pc++
+            val hi = Read(pc)
+            pc++
+            addressAbs = ((hi.toInt() shl 8) or lo.toInt()).toUInt()
+            addressAbs += y
+            return if ((addressAbs and 65280u).toInt() != hi.toInt() shl 8) 1 else 0
+        }
+
+        // Indirect
+        // IND/IZX/Y - read value from memory (8 bit) , then read value  + x/y register (standard 16-bit address)
+        // first address that is read is a location in first 0x00 bytes of address range, so we read it one time instead of two.
+        private fun IND(): Byte {
+            val lo = Read(pc)
+            pc++
+            val hi = Read(pc)
+            pc++
+            val tmpPtr = (hi.toInt() shl 8 or lo.toInt())
+            // there should be a bug implementation here
+            addressAbs = (Read((tmpPtr + 1).toUInt()) or Read(tmpPtr.toUInt())).toUInt()
+            return 0
+        }
+
+        private fun IZX(): Byte {
+            val tmp = Read(pc)
+            pc++
+            val lo = Read(((tmp + x) and 255u))
+            val hi = Read(((tmp + x + 1u) and 255u))
+            addressAbs = (hi.toInt() shl 8 or lo.toInt()).toUInt()
+            return 0
+        }
+
+        private fun IZY(): Byte {
+            val tmp = Read(pc)
+            pc++
+            val lo = Read(((tmp and 255u).toUInt()))
+            val hi = Read(((tmp + 1u) and 255u))
+            addressAbs = (hi.toInt() shl 8 or lo.toInt()).toUInt()
+            addressAbs += y
+            return if ((addressAbs and 65280u).toInt() != hi.toInt() shl 8) {
+                1
+            } else {
+                0
+            }
+        }
+
+        // Zeropage
+        // ZPG/X/Y read byte representing address from memory + optional offset x/y
+        // address that is read is a location in first 0xFF bytes of address range.
+        // This only requires one byte instead of the usual two.
+
+        private fun ZPG(): Byte {
+            addressAbs = Read(pc).toUInt()
+            pc++
+            addressAbs = addressAbs and 255u
+            return 0
+        }
+
+        private fun ZPX(): Byte {
+            addressAbs = (Read(pc) + x)
+            pc++
+            addressAbs = (addressAbs and 255u)
+            return 0
+        }
+
+        private fun ZPY(): Byte {
+            addressAbs = (Read(pc) + y)
+            pc++
+            addressAbs = (addressAbs and 255u)
+            return 0
+        }
+
+        // Relative
+        // read byte representing address from memory, this address needs to be between -128 and 127
+        private fun REL(): Byte {
+            addressRel = Read(pc).toUInt()
+            pc++
+            if (addressRel and 128u == addressRel) {
+                addressRel = addressRel or 65280u
+            }
+            return 0
+        }
 
     // Instructions
     // https://www.pagetable.com/c64ref/6502/
@@ -381,7 +386,7 @@ class Cpu6502{
         Fetch()
         val tmp = a and fetched
         SetFlag(Flags.Z, tmp.toInt() and 0xFF == 0x00)
-        SetFlag(Flags.N, (a.toInt() and 0x80)==0x80)
+        SetFlag(Flags.N, (fetched.toInt() and (1 shl 7)) == (1 shl 7))
         SetFlag(Flags.V, (fetched.toInt() and (1 shl 6)) == (1 shl 6))
         return 0
     }
@@ -634,7 +639,7 @@ class Cpu6502{
         Fetch()
         a = fetched
         SetFlag(Flags.Z, fetched.toInt() == 0x00)
-        SetFlag(Flags.N, fetched.toInt() and 0x80 == 0x80)
+        SetFlag(Flags.N, ((fetched.toInt() and 0x80) == 0x80))
         return 1
     }
 
@@ -919,6 +924,18 @@ class Cpu6502{
         this.bus = bus
     }
 
+    // executing instructions passed in hex format given the number of commands
+    fun runInstruction(hex: String, length: Int) {
+        this.bus.LoadInstructions(0x00FFu, hex)
+        this.Reset()
+
+        //this.Info()
+        repeat(length) {
+            this.Clock()
+            //this.Info()
+        }
+    }
+
     private fun Read(address : UInt) : UByte
     {
         return bus.Read(address)
@@ -936,6 +953,7 @@ class Cpu6502{
         println("register A ${a}")
         println("register X ${x}")
         println("register Y ${y}")
+        println("flags: ${this.Sr().toString(2)}")
         println("stack pointer ${sp}")
         println("stack register ${sr}")
         println("program counter ${pc}")
