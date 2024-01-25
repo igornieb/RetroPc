@@ -41,8 +41,8 @@ fun TextLayout(vm: MainViewModel) {
 
 @Composable
 fun TextScreen(text: String) {
-    val fontSize = 15.sp
-    val characterWidth = 8.dp // Assuming an average character width
+    val fontSize = 13.sp
+    val characterWidth = 8.dp
     val maxWidth = 80 * characterWidth
 
     // Text screen size is 40 rows by 42 columns
@@ -57,7 +57,7 @@ fun TextScreen(text: String) {
             color = Color.White,
             textAlign = TextAlign.Center,
             fontSize = fontSize,
-
+            letterSpacing = 2.sp,
             modifier = Modifier
                 .width(maxWidth)
                 .fillMaxHeight()
